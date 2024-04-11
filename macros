@@ -1,0 +1,85 @@
+.text
+.macro printString (%string)
+	li $v0, 4 # Tells program to get ready to print string.
+	la $a0, %string # Tells program to print message.
+	syscall # Tells program to exexute.
+.end_macro
+.macro inputFloat
+	li $v0, 6 # Lets user input float.
+	syscall # Tells program to exexute.
+	swc1 $f0, 12($sp) # Save length in stack.
+.end_macro
+.macro convertInt
+	cvt.w.s $f1, $f0 # Convert to integer.
+	swc1 $f1, 8($sp) # Save in stack pointer to convert to t register.
+.end_macro
+.macro checkGreater0 (%error)
+	lw $t2, 8($sp) # Load for check.
+	blez $t2, %error # Checks if number is > 0.
+.end_macro
+.macro checkGreaterEqual0 (%error)
+	lw $t2, 8($sp) # Load for check.
+	bltz $t2, %error # Checks if number is >= 0.
+.end_macro
+.macro printInt
+	li $v0, 1 # Tells program to get ready to print an integer.
+	move $a0, $t0 # Moves specified register into a0 for printing.
+	syscall # Execute
+	printString (return)
+.end_macro
+.macro error (%errMsg, %branch)
+	printString (%errMsg)
+	b %branch
+.end_macro
+.macro greaterNumCheck (%number, %branch)
+	lwc1 $f1, %number # Load into f1.
+	cvt.w.s $f2, $f1 # Convert to integer.
+	swc1 $f2, 12($sp) # Load f1 into stack.
+	lw $t2, 8($sp) # Move from stack into t2.
+	lw $t3, 12($sp) # Move from stack into t3.
+	bgt $t2, $t3, %branch # Checks if number is > number.
+.end_macro
+.macro procedure1 (%string, %branch)
+	printString (%string)
+	inputFloat
+	convertInt
+	checkGreater0 (%branch)
+.end_macro
+.macro procedure2 (%string, %branch)
+	printString (%string)
+	inputFloat
+	convertInt
+	checkGreaterEqual0 (%branch)
+.end_macro
+.macro printFloat (%freg)
+	li $v0, 2 # Tells program to get ready to print a float.
+	mov.s $f12, %freg
+	syscall # Execute
+	printString (return)
+.end_macro
+.macro loadVar (%var)
+	lwc1 $f3, %var # Loads variable into f3.
+.end_macro
+.macro runFlag (%branch)
+	lw $t1, 100($sp) # Load flag
+	lw $t2, flag # Check to see if flag is set
+	beq $t1, $t2, %branch # Flag set, branch to next.
+.end_macro
+.macro compareChar (%letter, %branch)
+	lw $t1, 8($sp) # Load for compare
+	lw $t2, %letter # Load variable for letter
+	beq $t1, $t2, %branch
+.end_macro
+.macro readChar
+	li $v0, 12 # Tells program to get ready to read a character.
+	syscall # Execute
+	sw $v0, 8($sp) # Save character read onto stack
+.end_macro
+.macro check (%freg1, %frge2, %treg, %branch)
+	swc1 %freg1, 12($sp)
+	cvt.w.s %frge2, %freg1
+	swc1 %frge2, 40($sp)
+	lw %treg, 40($sp)
+	bltz %treg, %branch
+	lwc1 %freg1, 12($sp) # restore f5 to K
+.end_macro
